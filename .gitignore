@@ -1,1 +1,3 @@
 KAFKA_CP/
+TSDB_CP/
+**/__pycache__/

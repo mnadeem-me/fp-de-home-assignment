@@ -9,6 +9,7 @@ This application, `app.py`, is a PySpark-based streaming application that reads 
 - Applies a watermark to handle late-arriving data.
 - Performs windowed aggregations to calculate the average sensor value over 1-minute windows.
 - Writes the aggregated results to a Kafka topic (`sensor-output`) in JSON format.
+- **Bonus task**: Writes the aggregated results to a Mongo DB Timeseries collection `sensors_aggregate_ts`
 
 ## Prerequisites
 
@@ -20,6 +21,20 @@ This application, `app.py`, is a PySpark-based streaming application that reads 
 4. **Python Dependencies**: Install required Python libraries:
    ```bash
    pip install pyspark
+5. **MongoDB**: Ensure MongoDB is up and running.
+    #### Setup :
+        docker run -d --name mongodb -p 27017:27017 mongo
+
+    Create a collection `sensors_aggregate_ts` as timeseries collection inside a db `sensors`.
+
+        use sensors;
+        db.createCollection("sensor_aggregates_ts", {
+        timeseries: {
+            timeField: "window_start",
+            metaField: "sensor_id",
+            granularity: "minutes"
+        }
+        })
 ## Application Workflow
 
 1. **Input Stream**: Reads data from the Kafka topic sensor-input.
@@ -32,7 +47,7 @@ This application, `app.py`, is a PySpark-based streaming application that reads 
     - Groups data by `sensorId` and 1-minute time windows.
     - Calculates the average value for each sensor within the window.
 5. **Output Stream**: Writes the aggregated results to the Kafka topic `sensor-output`.
-
+6. **DB Output**: Writes the results to a MongoDB collection.
 ## Running the Application
 1. Initiate Kafka Producer and Topics
     - Run following command:
@@ -42,4 +57,4 @@ This application, `app.py`, is a PySpark-based streaming application that reads 
 3. Verify `sensor-input` topic with messages from the producer
 4. Run the spark application:
     ```bash
-    spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 app.py
+    spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,org.mongodb.spark:mongo-spark-connector_2.12:10.4.1 app.py

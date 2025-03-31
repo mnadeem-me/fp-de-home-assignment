@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import avg, col, from_json, round, struct, to_json, window
 
+from utils.db import write_to_mongodb  # Import the function to write to MongoDB
+
 # Initialize Spark session
 spark = SparkSession.builder.appName("SensorWindowAggregation").getOrCreate()
 
@@ -55,4 +57,11 @@ output_stream.writeStream.outputMode("update").option(
     "topic", "sensor-output"
 ).trigger(
     processingTime="1 minute"
-).start().awaitTermination()
+).start()
+
+# Write the result stream to timesacleDB
+result_stream.writeStream.outputMode("update").foreachBatch(write_to_mongodb).option(
+    "checkpointLocation", "C:\\Users\\Nadeem\\Downloads\\fp-de-home-assignment\\TSDB_CP"
+).trigger(processingTime="1 minute").start()
+
+spark.streams.awaitAnyTermination()

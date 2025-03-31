@@ -39,6 +39,9 @@ output_stream = result_stream.select(to_json(struct("sensorId", "windowStart", "
 
 output_stream.writeStream \
     .outputMode("update") \
-    .format("console").option("truncate", False)\
+    .option("checkpointLocation", f"C:\\Users\\Nadeem\\Downloads\\fp-de-home-assignment\\KAFKA_CP")\
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("topic", "sensor-output") \
     .trigger(processingTime="1 minute") \
     .start().awaitTermination()
